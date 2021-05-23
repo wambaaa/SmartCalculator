@@ -1,0 +1,119 @@
+{
+    "device-name": "Calculator App",
+    "device-type": "Calculator",
+    "buffers-count": 1,
+    "input-buffers":{
+        "1":{
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "prefix": "curl -XPOST 'http://127.0.0.1:8080/'",
+            "buffer-tokens":[
+            {
+                "name":"Calculator Temperature",
+                "description":"",
+                "token-type":"string", 
+                "byte-size":10, 
+                "regex-rule": "Temp", 
+                "optional": false
+            },
+            {
+                "name":"Luminosity",
+                "description": "",
+                "token-type":"string",
+                "byte-size":10,
+                "regex-rule": "Lum", 
+                "optional": false
+            },
+            {
+                "name":"Date Time",
+                "description": "",
+                "token-type":"string",
+                "byte-size":10,
+                "regex-rule": "DateTime", 
+                "optional": false
+            },
+            {
+                "name":"Battery",
+                "description": "",
+                "token-type":"string",
+                "byte-size":10,
+                "regex-rule": "Battery", 
+                "optional": false
+            }
+            ]
+        },
+        "2":{
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "prefix": "curl -XPOST 'http://127.0.0.1:8080/'",
+            "buffer-tokens":[
+            {
+                "name":"Binary Converter",
+                "description":"",
+                "token-type":"string", 
+                "byte-size":10, 
+                "regex-rule": "[0-9]|[1-9][0-9]+", 
+                "optional": false
+            }]
+
+        }
+    },
+    "output-buffers":{
+        
+        "1":{
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "prefix": "curl -XPOST 'http://127.0.0.1:8080/'",
+            "buffer-tokens":[
+            {
+                "name":"Calculator Temperature",
+                "description":"",
+                "token-type":"string", 
+                "byte-size":10, 
+                "regex-rule": "Temp", 
+                "optional": false
+            },
+            {
+                "name":"Luminosity",
+                "description": "",
+                "token-type":"string",
+                "byte-size":10,
+                "regex-rule": "Lum", 
+                "optional": false
+            },
+            {
+                "name":"Date Time",
+                "description": "",
+                "token-type":"string",
+                "byte-size":10,
+                "regex-rule": "DateTime", 
+                "optional": false
+            },
+            {
+                "name":"Battery",
+                "description": "",
+                "token-type":"string",
+                "byte-size":10,
+                "regex-rule": "Battery", 
+                "optional": false
+            }
+            ]
+        },
+        "2":{
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "prefix": "curl -XPOST 'http://127.0.0.1:8080/'",
+            "buffer-tokens":[
+            {
+                "name":"Binary Converter",
+                "description":"",
+                "token-type":"string", 
+                "byte-size":10, 
+                "regex-rule": "[0-9]|[1-9][0-9]+", 
+                "optional": false
+            }]
+
+        }
+}
+
+}

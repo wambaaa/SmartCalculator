@@ -12,10 +12,10 @@
 #include <signal.h>
 #include <json/value.h>
 #include <fstream>
+#include <mqtt/client.h>
 
 using namespace std;
 using namespace Pistache;
-
 
 // General advice: pay atetntion to the namespaces that you use in various contexts. Could prevent headaches.
 
@@ -45,7 +45,7 @@ public:
     explicit CalculatorEndpoint(Address addr)
         : httpEndpoint(std::make_shared<Http::Endpoint>(addr))
     { }
-
+    CalculatorEndpoint(){}
     // Initialization of the server. Additional options can be provided here
     void init(size_t thr = 2) {
         auto opts = Http::Endpoint::options()
@@ -277,16 +277,51 @@ private:
     Lock calculatorLock;
 
     // Instance of the  calculator model
-    Calculator clc;
 
     // Defining the httpEndpoint and a router.
     std::shared_ptr<Http::Endpoint> httpEndpoint;
     Rest::Router router;
+    public:
+        Calculator clc;
 };
+
+void mqttExample() {
+    CalculatorEndpoint calc;
+    string curDate = calc.clc.getCurrentDate();
+    const std::string address = "localhost";
+    const std::string clientId = "microwave";
+
+    // Create a client
+    mqtt::client client(address, clientId);
+
+    mqtt::connect_options options;
+    options.set_keep_alive_interval(20);
+    options.set_clean_session(true);
+
+    try {
+        // Connect to the client
+        client.connect(options);
+
+        // Create a message
+        const std::string TOPIC = "microwave";
+        const std::string PAYLOAD = curDate;
+        auto msg = mqtt::make_message(TOPIC, PAYLOAD);
+
+        // Publish it to the server
+        client.publish(msg);
+
+        // Disconnect
+        client.disconnect();
+    }
+    catch (const mqtt::exception& exc) {
+        std::cerr << exc.what() << " [" << exc.get_reason_code() << "]" << std::endl;
+    }
+}
 
 int main(int argc, char *argv[]) {
 
     // This code is needed for gracefull shutdown of the server when no longer needed.
+    mqttExample();
     sigset_t signals;
     if (sigemptyset(&signals) != 0
             || sigaddset(&signals, SIGTERM) != 0

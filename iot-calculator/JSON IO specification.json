@@ -15,23 +15,13 @@
                 "byte-size":10, 
                 "regex-rule": "^-?([0-9](.[0-9]{1,2})?|[1-9][0-9](.[0-9]{1,2})?)$", 
                 "optional": false
-            },
-            {
-                "name":"Luminosity",
-                "description": "",
-                "token-type":"string",
-                "byte-size":10,
-                "regex-rule": "^([0-9]|[0-9][1-9]{1,4}|100000)(.[0.9]{1,3})?$", 
-                "optional": false
-            },
-            {
-                "name":"Date Time",
-                "description": "",
-                "token-type":"string",
-                "byte-size":10,
-                "regex-rule": "^[0-9]{2}.((0[1-9])|(1[12])).20[2-9][0-9].((0[1-9])|(1[0-9])|(2[0-3])).(([0-5][0-9])|(60)).(([0-5][0-9])|(60))$", 
-                "optional": false
-            },
+            }]
+        },
+        "2":{
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "prefix": "curl -XPOST 'http://127.0.0.1:8080/battery/'",
+            "buffer-tokens":[
             {
                 "name":"Battery",
                 "description": "",
@@ -39,20 +29,50 @@
                 "byte-size":10,
                 "regex-rule": "^([0-9]|([1-9][0-9])|(100))%$", 
                 "optional": false
-            }
-            ]
+            }]
+
         },
-        "2":{
+        "3":{
             "token-delimitators": "",
             "protocol": "HTTP",
-            "prefix": "curl -XPOST 'http://127.0.0.1:8080/'",
+            "prefix": "curl -XPOST 'http://127.0.0.1:8080/datetime/'",
+            "buffer-tokens":[
+            {
+                "name":"Date Time",
+                "description": "",
+                "token-type":"string",
+                "byte-size":10,
+                "regex-rule": "^[0-9]{2}.((0[1-9])|(1[12])).20[2-9][0-9].((0[1-9])|(1[0-9])|(2[0-3])).(([0-5][0-9])|(60)).(([0-5][0-9])|(60))$", 
+                "optional": false
+            }]
+
+        },
+        "4":{
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "prefix": "curl -XPOST 'http://127.0.0.1:8080/luminosity/'",
+            "buffer-tokens":[
+            {
+                "name":"Luminosity",
+                "description": "",
+                "token-type":"string",
+                "byte-size":10,
+                "regex-rule": "^([0-9]|[0-9][1-9]{1,4}|100000)(.[0.9]{1,3})?$", 
+                "optional": false
+            }]
+
+        },
+        "5":{
+            "token-delimitators": "",
+            "protocol": "HTTP",
+            "prefix": "curl -XPOST 'http://127.0.0.1:8080/binary-converter/'",
             "buffer-tokens":[
             {
                 "name":"Binary Converter",
                 "description":"",
                 "token-type":"string", 
                 "byte-size":10, 
-                "regex-rule": "[0-9]|[1-9][0-9]+", 
+                "regex-rule": "[0-9]|[1-9][0-9]{1-7}", 
                 "optional": false
             }]
 

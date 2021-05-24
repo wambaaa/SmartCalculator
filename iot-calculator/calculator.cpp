@@ -10,9 +10,12 @@
 #include <chrono>
 #include <ctime> 
 #include <signal.h>
+#include <json/value.h>
+#include <fstream>
 
 using namespace std;
 using namespace Pistache;
+
 
 // General advice: pay atetntion to the namespaces that you use in various contexts. Could prevent headaches.
 
@@ -70,13 +73,12 @@ private:
         // Generally say that when http://localhost:9080/ready is called, the handleReady function should be called. 
         Routes::Get(router, "/ready", Routes::bind(&Generic::handleReady));
         Routes::Get(router, "/auth", Routes::bind(&CalculatorEndpoint::doAuth, this));
-        Routes::Post(router, "/:value", Routes::bind(&CalculatorEndpoint::setSetting, this));
-        Routes::Get(router, "/", Routes::bind(&CalculatorEndpoint::getSetting, this));
-        Routes::Get(router, "/setCalc/:formula/", Routes::bind(&CalculatorEndpoint::setCalc, this));
-        Routes::Get(router, "/setLum/", Routes::bind(&CalculatorEndpoint::setLum, this));
-        Routes::Get(router, "/setBat/", Routes::bind(&CalculatorEndpoint::setBat, this));
-        Routes::Get(router, "/setTemp/", Routes::bind(&CalculatorEndpoint::setTemp, this));
-        Routes::Get(router, "/setDate/", Routes::bind(&CalculatorEndpoint::setDate, this));
+        Routes::Get(router, "/binary-converter/:formula/", Routes::bind(&CalculatorEndpoint::setCalc, this));
+        Routes::Get(router, "/luminosity/:lux", Routes::bind(&CalculatorEndpoint::setLum, this));
+        Routes::Get(router, "/battery/:bat", Routes::bind(&CalculatorEndpoint::setBat, this));
+        Routes::Get(router, "/temp/:temp", Routes::bind(&CalculatorEndpoint::setTemp, this));
+        Routes::Get(router, "/datetime/:an/:luna/:zi", Routes::bind(&CalculatorEndpoint::setDate, this));
+        Routes::Get(router, "/datetime/", Routes::bind(&CalculatorEndpoint::setCurDate, this));
        
     }
     void setCalc(const Rest::Request& request, Http::ResponseWriter response){
@@ -102,35 +104,48 @@ private:
 
         // This is a guard that prevents editing the same value by two concurent threads. 
         Guard guard(calculatorLock);
+        string lum = request.param(":lux").as<std::string>();
         // Setting the adidasi's setting to value
-        response.send(Http::Code::Ok, "Luminozitatea ta este de: " + clc.getLuminosity() + "!");
+        response.send(Http::Code::Ok, "Luminozitatea ta este de: " + clc.getLuminosity(lum) + "!");
      
     }
      void setBat(const Rest::Request& request, Http::ResponseWriter response){
 
         // This is a guard that prevents editing the same value by two concurent threads. 
         Guard guard(calculatorLock);
+        string battery = request.param(":bat").as<std::string>();
         // Setting the adidasi's setting to value
-        response.send(Http::Code::Ok, "Bateria ta este de: " + clc.getBattery() + "!");
+        response.send(Http::Code::Ok, "Bateria ta este de: " + clc.getBattery(battery) + "!");
      
     }
     void setTemp(const Rest::Request& request, Http::ResponseWriter response){
 
         // This is a guard that prevents editing the same value by two concurent threads. 
         Guard guard(calculatorLock);
+        string t = request.param(":temp").as<std::string>();
         // Setting the adidasi's setting to value
-        response.send(Http::Code::Ok, "Temperatura in zona ta este de: " + clc.getTemperature() + "°C!");
+        response.send(Http::Code::Ok, "Temperatura in zona ta este de: " + clc.getTemperature(t) + "!");
      
     }
     void setDate(const Rest::Request& request, Http::ResponseWriter response){
 
         // This is a guard that prevents editing the same value by two concurent threads. 
         Guard guard(calculatorLock);
+        string an = request.param(":an").as<std::string>();
+        string luna = request.param(":luna").as<std::string>();
+        string  zi = request.param(":zi").as<std::string>();
         // Setting the adidasi's setting to value
-        response.send(Http::Code::Ok, "Este ora si data de: " + clc.getCurrentDate() + "!");
+        response.send(Http::Code::Ok, "Data: " + clc.getDate(stoi(an),stoi(luna),stoi(zi)) + "!");
      
     }
-    
+    void setCurDate(const Rest::Request& request, Http::ResponseWriter response){
+
+        // This is a guard that prevents editing the same value by two concurent threads. 
+        Guard guard(calculatorLock);
+        // Setting the adidasi's setting to value
+        response.send(Http::Code::Ok, "Data: " + clc.getCurrentDate() + "!");
+     
+    }
     
     void doAuth(const Rest::Request& request, Http::ResponseWriter response) {
         // Function that prints cookies
@@ -140,58 +155,6 @@ private:
             .add(Http::Cookie("lang", "en-US"));
         // Send the response
         response.send(Http::Code::Ok);
-    }
-
-    // Endpoint to configure one of the Calculator's settings.
-    void setSetting(const Rest::Request& request, Http::ResponseWriter response){
-        // You don't know what the parameter content that you receive is, but you should
-        // try to cast it to some data structure. Here, I cast the settingName to string.
-        auto settingName = request.param(":settingName").as<std::string>();
-
-        // This is a guard that prevents editing the same value by two concurent threads. 
-        Guard guard(calculatorLock);
-
-        
-        string val = "";
-        if (request.hasParam(":value")) {
-            auto value = request.param(":value");
-            val = value.as<string>();
-        }
-
-        // Setting the calculator's setting to value
-        int setResponse = clc.set(settingName, val);
-
-        // Sending some confirmation or error response.
-        if (setResponse == 1) {
-            response.send(Http::Code::Ok, settingName + " was set to " + val);
-        }
-        else {
-            response.send(Http::Code::Not_Found, settingName + " was not found and or '" + val + "' was not a valid value ");
-        }
-
-    }
-
-    // Setting to get the settings value of one of the configurations of the Calculator
-    void getSetting(const Rest::Request& request, Http::ResponseWriter response){
-        auto settingName = request.param(":settingName").as<std::string>();
-
-        Guard guard(calculatorLock);
-
-        string valueSetting = clc.get(settingName);
-
-        if (valueSetting != "") {
-
-            // In this response I also add a couple of headers, describing the server that sent this response, and the way the content is formatted.
-            using namespace Http;
-            response.headers()
-                        .add<Header::Server>("pistache/0.1")
-                        .add<Header::ContentType>(MIME(Text, Plain));
-
-            response.send(Http::Code::Ok, settingName + " is " + valueSetting);
-        }
-        else {
-            response.send(Http::Code::Not_Found, settingName + " was not found");
-        }
     }
 
 
@@ -207,29 +170,44 @@ private:
             luminozitate.lumina = lumina;
             return 1;
         }
-
         string getCurrentDate()
         {
-        auto start = std::chrono::system_clock::now();
-    // Some coSmputation here
-        auto end = std::chrono::system_clock::now();
+            time_t     now = time(0);
+            struct tm  tstruct;
+            char       buf[80];
+            tstruct = *localtime(&now);
+ 
+            strftime(buf, sizeof(buf), "%d/%m/%Y", &tstruct);
 
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-        std::string s = std::ctime(&end_time);
-        return  s;
-
+            return buf;
+        
         }
-        string getLuminosity()
+       string getDate(int year, int month, int day)
         {
-            srand(time(0));
-	    int naturalLightLevel = (rand() % 100) + 1;
-	    int screenLightLevel;
-	    if (naturalLightLevel <= 90)
+             std::tm tm {} ;
+            tm.tm_year = year - 1900 ;
+            tm.tm_mon = month - 1 ;
+            tm.tm_mday = day ;
 
-		    screenLightLevel = naturalLightLevel + 10;
-	    else
-		    screenLightLevel = 100;
+
+            char buffer[128] ;
+            std::strftime( buffer, sizeof(buffer), "%d/%m/%Y", std::addressof(tm) ) ;
+            return buffer ;
+        }
+        string getLuminosity(string natLight)
+        {
+        int light = stoi(natLight);
+	    int screenLightLevel;
+	    if (light < 40)
+
+		    screenLightLevel = 50;
+	    else if (light <= 90)
+        {
+            screenLightLevel = light + 10;
+        }
+        else{
+            screenLightLevel = 100;
+        }
 
 	    return std::to_string(screenLightLevel);
         }
@@ -249,137 +227,18 @@ private:
     return s;
 
     }       
-        string getBattery()
-        {   srand(time(0));
-            int batteryLevel = (rand() % 100) + 1;
-            return std::to_string(batteryLevel);
+        string getBattery(string b)
+        {   
+            return b + "%";
         }
-        string getTemperature()
-        {   srand(time(0));
-            int maxi = 35;
-	        int mini = -30;
-	        int randNum = rand() % (maxi - mini + 1) + mini;
-	
-            return std::to_string(randNum);
+        string getTemperature(string temp)
+       { 
+            return temp + " °C";
         }
 
-        // Setting the value for one of the settings. Hardcoded for the defrosting option
-        int set(std::string name, std::string value){
-            if(name == "conversii"){
-                conversii.name = name;
-                if(value == "true"){
-                    conversii.value = true;
-                    
-                    return 1;
-                }
-              if(value == "false"){
-                    conversii.value = false;
-                    return 1;
-                }
-            }
-            if(name == "date"){
-                date.name = name;
-                if(value == "true"){
-                    date.value = true;
-                    
-                    return 1;
-                }
-              if(value == "false"){
-                    date.value = false;
-                    return 1;
-                }
-            }
-            if(name == "temperatura"){
-                temperatura.name = name;
-                if(value == "true"){
-                    temperatura.value = true;
-                    
-                    return 1;
-                }
-              if(value == "false"){
-                    temperatura.value = false;
-                    return 1;
-                }
-            }
-            if(name == "baterie"){
-                baterie.name = name;
-                if(value == "true"){
-                    baterie.value = true;
-                    
-                    return 1;
-                }
-              if(value == "false"){
-                    baterie.value = false;
-                    return 1;
-                }
-            }
-            if(name == "luminozitate"){
-                luminozitate.name = name;
-                if(value == "true"){
-                    luminozitate.value = true;
-                    
-                    return 1;
-                }
-              if(value == "false"){
-                    luminozitate.value = false;
-                    return 1;
-                }
-            }
-            return 0;
-        }
+       
 
-        // Getter
-        string get(std::string name){
-            if (name == "conversii"){
-                return std::to_string(conversii.value);
-            }
-            else{
-                return "";
-            }
-            if (name == "date"){
-                //std::to_string(date.value)
-                if(date.value)
-                    return getCurrentDate();
-
-                return "Mon Jan 01 00:00:00 1950";
-            }
-            else{
-                return "";
-            }
-            if (name == "temperatura"){
-                //std::to_string(temperatura.value)
-                if(temperatura.value)
-                    return getTemperature();
-                
-                return "0°C";
-            }
-            else{
-                return "";
-            }
-            if (name == "baterie"){
-                //return std::to_string(baterie.value);
-                if(date.value)
-                    return getBattery();
-
-                return "0%";
-            
-            }
-            else{
-                return "";
-            }
-            if (name == "luminozitate"){
-                //return std::to_string(luminozitate.value);
-                if(luminozitate.value)
-                    return getLuminosity();
-
-                return "0";
-            
-            }
-            else{
-                return "";
-            }
-        }
-
+       
     private:
         // Defining and instantiating settings.
         struct boolSetting{

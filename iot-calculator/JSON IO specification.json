@@ -6,7 +6,7 @@
         "1":{
             "token-delimitators": "",
             "protocol": "HTTP",
-            "prefix": "curl -XPOST 'http://127.0.0.1:8080/'",
+            "prefix": "curl -XPOST 'http://127.0.0.1:8080/temp/'",
             "buffer-tokens":[
             {
                 "name":"Temperature",

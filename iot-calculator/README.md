@@ -24,7 +24,7 @@ You can build the `calculator` executable by running `make`.
 A step by step series of examples that tell you how to get a development env running
 
 You should open the terminal, navigate into the root folder of this repository, and run\
-`g++ calculator.cpp -o calc -lpistache -lcrypto -lssl -lpthread`
+`g++ -std=c++17 calculator.cpp -o calc -lpistache -lcrypto -lssl -lpthread`
 
 This will compile the project using g++, into an executable called `calc` using the libraries `pistache`, `crypto`, `ssl`, `pthread`. You only really want pistache, but the last three are dependencies of the former.
 Note that in this compilation process, the order of the libraries is important.

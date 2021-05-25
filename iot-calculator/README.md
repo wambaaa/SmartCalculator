@@ -17,33 +17,39 @@ On Ubuntu, you can install a pre-built binary as described [here](http://pistach
 
 #### Using Make
 
-You can build the `microwave` executable by running `make`.
+You can build the `calculator` executable by running `make`.
 
 ### Manually
 
 A step by step series of examples that tell you how to get a development env running
 
 You should open the terminal, navigate into the root folder of this repository, and run\
-`g++ microwave_example.cpp -o microwave -lpistache -lcrypto -lssl -lpthread`
+`g++ calculator.cpp -o calc -lpistache -lcrypto -lssl -lpthread`
 
-This will compile the project using g++, into an executable called `microwave` using the libraries `pistache`, `crypto`, `ssl`, `pthread`. You only really want pistache, but the last three are dependencies of the former.
+This will compile the project using g++, into an executable called `calc` using the libraries `pistache`, `crypto`, `ssl`, `pthread`. You only really want pistache, but the last three are dependencies of the former.
 Note that in this compilation process, the order of the libraries is important.
 
 ### Running
 
 To start the server run\
-`./microwave`
+`./calc`
 
 Your server should display the number of cores being used and no errors.
 
 To test, open up another terminal, and type\
-`curl http://localhost:9080/ready`
+`curl http://localhost:9080/` followed by the function you wish to use, and its parameters. For example:
 
-Number 1 should display.
+`curl http://localhost:9080/temp/25`
 
-Now you have the server running
+`curl http://localhost:9080/battery/13`
 
+`curl http://localhost:9080/binary-converter/20`
 
+`curl http://localhost:9080/luminosity/66`
+
+`curl http://localhost:9080/datetime/2012/06/31` sets the current date with the one given through the parameter.
+
+`curl http://localhost:9080/datetime/`   returns current date.
 ## Built With
 
 * [Pistache](https://github.com/pistacheio/pistache) - Web server
